@@ -1,0 +1,201 @@
+
+
+bl
+bp kernel32.dll!LoadLibraryW
+bp kernel32.dll!LoadLibraryA
+bp LoadLibraryW
+bp LoadLibraryA
+bp wWinMain
+
+sxi av		* ignore access violation
+sxe ld:shfolder.dll		* break on module load of shfolder.dll
+
+
+lm			*list module
+lmvmshfolder.dll
+!dlls
+	shfolder.dll base 622b0000, entry offset 1330
+bp 622b1330
+
+
+stack on Win7 x64 sp1:
+	DllEntryPoint or DllMain
+	ntdll!LdrpRunInitializeRoutines+0x1fe
+	ntdll!LdrpLoadDll+0x594
+	ntdll!LdrLoadDll+0xed
+	KERNELBASE!LoadLibraryExW+0x2a3
+
+; entry
+bp shfolder+1330
+;bp shfolder!DllMain
+bp shfolder+133B
+
+
+bp shfolder+180c
+
+
+; dll detach, unhook all thread
+bp shfolder+190c
+
+; zzFindAndModImportCryptKey
+bp shfolder+11f0
+
+; call zzHookLibFunc
+bp shfolder+12ad
+; call zz
+bp shfolder+2044
+
+
+; loop thread and inject code
+bp shfolder+1484
+; open thread
+bp shfolder+15d5
+
+
+0:000> lmvmshfolder
+Browse full module list
+start             end                 module name
+00000000`5c780000 00000000`5c78a000   SHFolder C (export symbols)       Z:\absolute\path\SHFolder.dll
+    Loaded symbol image file: Z:\absolute\path\SHFolder.dll
+    Image path: Z:\absolute\path\SHFolder.dll
+    Image name: SHFolder.dll
+    Browse all global symbols  functions  data
+    Timestamp:        Sun Nov  5 02:47:56 2017 (59FE0B5C)
+    CheckSum:         00000000
+    ImageSize:        0000A000
+    Translations:     0000.04b0 0000.04e4 0409.04b0 0409.04e4
+
+advapi32!CryptImportKeyStub:
+00007ffe`30db6460 48ff25516c0800  jmp     qword ptr [advapi32!_imp_CryptImportKey (00007ffe`30e3d0b8)]
+00007ffe`30db6467 cc              int     3
+00007ffe`30db6468 cc              int     3
+
+advapi32!_imp_CryptImportKey:
+00007ffe`30e3d0b8 89c6            mov     esi,eax
+00007ffe`30e3d0ba db              ???
+00007ffe`30e3d0bb 30fe            xor     dh,bh
+00007ffe`30e3d0bd 7f00            jg      advapi32!_imp_CryptImportKey+0x7 (00007ffe`30e3d0bf)
+00007ffe`30e3d0bf 0055c7          add     byte ptr [rbp-39h],dl
+00007ffe`30e3d0c2 db              ???
+00007ffe`30e3d0c3 30fe            xor     dh,bh
+00007ffe`30e3d0c5 7f00            jg      advapi32!_imp_CryptDuplicateKey+0x7 (00007ffe`30e3d0c7)
+00007ffe`30e3d0c7 0061c7          add     byte ptr [rcx-39h],ah
+00007ffe`30e3d0ca db              ???
+00007ffe`30e3d0cb 30fe            xor     dh,bh
+00007ffe`30e3d0cd 7f00            jg      advapi32!_imp_CryptGenRandom+0x7 (00007ffe`30e3d0cf)
+00007ffe`30e3d0cf 006dc7          add     byte ptr [rbp-39h],ch
+00007ffe`30e3d0d2 db              ???
+00007ffe`30e3d0d3 30fe            xor     dh,bh
+00007ffe`30e3d0d5 7f00            jg      advapi32!_imp_CryptEncrypt+0x7 (00007ffe`30e3d0d7)
+00007ffe`30e3d0d7 0079c7          add     byte ptr [rcx-39h],bh
+00007ffe`30e3d0da db              ???
+00007ffe`30e3d0db 30fe            xor     dh,bh
+00007ffe`30e3d0dd 7f00            jg      advapi32!_imp_CryptEnumProviderTypesW+0x7 (00007ffe`30e3d0df)
+00007ffe`30e3d0df 0085c7db30fe    add     byte ptr [rbp-1CF2439h],al
+00007ffe`30e3d0e5 7f00            jg      advapi32!_imp_CryptSetProviderA+0x7 (00007ffe`30e3d0e7)
+00007ffe`30e3d0e7 0091c7db30fe    add     byte ptr [rcx-1CF2439h],dl
+00007ffe`30e3d0ed 7f00            jg      advapi32!_imp_CryptEnumProvidersW+0x7 (00007ffe`30e3d0ef)
+00007ffe`30e3d0ef 009dc7db30fe    add     byte ptr [rbp-1CF2439h],bl
+00007ffe`30e3d0f5 7f00            jg      advapi32!_imp_CryptEnumProvidersA+0x7 (00007ffe`30e3d0f7)
+00007ffe`30e3d0f7 00a9c7db30fe    add     byte ptr [rcx-1CF2439h],ch
+00007ffe`30e3d0fd 7f00            jg      advapi32!_imp_CryptAcquireContextW+0x7 (00007ffe`30e3d0ff)
+00007ffe`30e3d0ff 00b5c7db30fe    add     byte ptr [rbp-1CF2439h],dh
+00007ffe`30e3d105 7f00            jg      advapi32!_imp_CryptGetKeyParam+0x7 (00007ffe`30e3d107)
+00007ffe`30e3d107 00c1            add     cl,al
+00007ffe`30e3d109 c7              ???
+00007ffe`30e3d10a db              ???
+00007ffe`30e3d10b 30fe            xor     dh,bh
+00007ffe`30e3d10d 7f00            jg      advapi32!_imp_CryptSetProvParam+0x7 (00007ffe`30e3d10f)
+00007ffe`30e3d10f 00cd            add     ch,cl
+00007ffe`30e3d111 c7              ???
+00007ffe`30e3d112 db              ???
+00007ffe`30e3d113 30fe            xor     dh,bh
+00007ffe`30e3d115 7f00            jg      advapi32!_imp_CryptAcquireContextA+0x7 (00007ffe`30e3d117)
+00007ffe`30e3d117 00d9            add     cl,bl
+00007ffe`30e3d119 c7              ???
+00007ffe`30e3d11a db              ???
+00007ffe`30e3d11b 30fe            xor     dh,bh
+00007ffe`30e3d11d 7f00            jg      advapi32!_imp_CryptVerifySignatureA+0x7 (00007ffe`30e3d11f)
+00007ffe`30e3d11f 00e5            add     ch,ah
+00007ffe`30e3d121 c7              ???
+00007ffe`30e3d122 db              ???
+00007ffe`30e3d123 30fe            xor     dh,bh
+00007ffe`30e3d125 7f00            jg      advapi32!_imp_CryptDuplicateHash+0x7 (00007ffe`30e3d127)
+00007ffe`30e3d127 00f1            add     cl,dh
+00007ffe`30e3d129 c7              ???
+00007ffe`30e3d12a db              ???
+00007ffe`30e3d12b 30fe            xor     dh,bh
+00007ffe`30e3d12d 7f00            jg      advapi32!_imp_CryptGetUserKey+0x7 (00007ffe`30e3d12f)
+00007ffe`30e3d12f 00fd            add     ch,bh
+00007ffe`30e3d131 c7              ???
+00007ffe`30e3d132 db              ???
+00007ffe`30e3d133 30fe            xor     dh,bh
+00007ffe`30e3d135 7f00            jg      advapi32!_imp_CryptDestroyKey+0x7 (00007ffe`30e3d137)
+00007ffe`30e3d137 007dc6          add     byte ptr [rbp-3Ah],bh
+00007ffe`30e3d13a db              ???
+
+
+=======
+advapi32!CryptImportKeyStub:
+00007ffe`30db6460 e962abfdff      jmp     00007ffe`30d90fc7
+00007ffe`30db6465 0800            or      byte ptr [rax],al
+00007ffe`30db6467 cc              int     3
+00007ffe`30db6468 cc              int     3
+
+00007ffe`30d90fc7 ff2500000000    jmp     qword ptr [00007ffe`30d90fcd]
+00007ffe`30d90fcd 4011785c        adc     dword ptr [rax+5Ch],edi
+00007ffe`30d90fd1 0000            add     byte ptr [rax],al
+00007ffe`30d90fd3 0000            add     byte ptr [rax],al
+
+00000000`5c781140 4c894c2420      mov     qword ptr [rsp+20h],r9 ss:00000000`007ff958=00000000007ff998
+00000000`5c781145 4489442418      mov     dword ptr [rsp+18h],r8d
+00000000`5c78114a 4889542410      mov     qword ptr [rsp+10h],rdx
+00000000`5c78114f 48894c2408      mov     qword ptr [rsp+8],rcx
+00000000`5c781154 53              push    rbx
+00000000`5c781155 56              push    rsi
+00000000`5c781156 57              push    rdi
+00000000`5c781157 4156            push    r14
+00000000`5c781159 4883ec38        sub     rsp,38h
+00000000`5c78115d 498bf1          mov     rsi,r9
+00000000`5c781160 418bf8          mov     edi,r8d
+00000000`5c781163 488bda          mov     rbx,rdx
+00000000`5c781166 4c8bf1          mov     r14,rcx
+00000000`5c781169 4885d2          test    rdx,rdx
+00000000`5c78116c 742f            je      SHFolder+0x119d (00000000`5c78119d)
+
+=============
+
+advapi32!CryptImportKeyStub:
+00007ffe`30db6460 e962abfdff      jmp     00007ffe`30d90fc7
+00007ffe`30db6465 0800            or      byte ptr [rax],al
+00007ffe`30db6467 cc              int     3
+00007ffe`30db6468 cc              int     3
+00007ffe`30db6469 cc              int     3
+00007ffe`30db646a cc              int     3
+00007ffe`30db646b cc              int     3
+00007ffe`30db646c cc              int     3
+00007ffe`30db646d cc              int     3
+00007ffe`30db646e cc              int     3
+00007ffe`30db646f cc              int     3
+
+00007ffe`30d90fc7 ff2500000000    jmp     qword ptr [00007ffe`30d90fcd]
+00007ffe`30d90fcd 4011785c        adc     dword ptr [rax+5Ch],edi
+00007ffe`30d90fd1 0000            add     byte ptr [rax],al
+00007ffe`30d90fd3 0000            add     byte ptr [rax],al
+00007ffe`30d90fd5 0000            add     byte ptr [rax],al
+00007ffe`30d90fd7 0000            add     byte ptr [rax],al
+00007ffe`30d90fd9 0000            add     byte ptr [rax],al
+00007ffe`30d90fdb 0000            add     byte ptr [rax],al
+
+
+; map file and do useless things, ignore this func
+;ModuleFileName
+bp shfolder+100d
+UTF16-LE: Z:\absolute\path\SHFolder.dll
+
+;unk_403190
+bp shfolder+10cd
+;weird_xor_of_SHFolder_dll_with_some_mem:
+bp shfolder+10e0
+;weird op done
+bp shfolder+10ff
